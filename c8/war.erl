@@ -5,9 +5,11 @@
 
 %% Improvements:
 %% - make sure that in a war condition, it fairly decides who wins if both players send []
+%% - kill player pids at end of game
 
 %% Our entry point into the game.
 dealer(CardsPerPlayer) ->
+  random:seed(now()),
   {P1Cards, P2Cards} = lists:split(CardsPerPlayer, cards:shuffled_deck(CardsPerPlayer * 2)),
   P1 = spawn(war, player, [p1, P1Cards]),
   P2 = spawn(war, player, [p2, P2Cards]),
