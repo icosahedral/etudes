@@ -21,18 +21,7 @@ dealer([], P1, P2) ->
   io:format("[dealer] Asking players for cards~n"),
   P1 ! {send, self()},
   P2 ! {send, self()},
-  receive
-    PlayerCard -> 
-      case PlayerCard of
-        {p1, []} ->
-          io:format("P1 has no cards.  P2 wins!~n");
-        {p2, []} ->
-          io:format("P2 has no cards.  P1 wins!~n");
-        _ ->
-          io:format("[dealer] Got ~p~n", [PlayerCard]),
-          dealer([PlayerCard], P1, P2)
-      end
-  end;
+  get_card([], P1, P2);
 
 dealer(GameState, P1, P2) ->
   Status = length(GameState),
@@ -46,18 +35,7 @@ dealer(GameState, P1, P2) ->
   end,
   case Decision of
     get_card ->
-      receive
-        PlayerCard ->
-          case PlayerCard of
-            {p1, []} ->
-              io:format("P1 has no cards.  P2 wins!~n");
-            {p2, []} ->
-              io:format("P2 has no cards.  P1 wins!~n");
-            _ ->
-              io:format("[dealer] Got ~p~n", [PlayerCard]),
-              dealer([PlayerCard|GameState], P1, P2)
-          end
-      end;
+      get_card(GameState, P1, P2);
     send_to_p1 ->
       io:format("[dealer] Sending cards to P1~n"),
       send_to_player(p1, P1, P2, GameState);
@@ -74,17 +52,20 @@ dealer(GameState, P1, P2) ->
       P2 ! {send, self()},
       P1 ! {send, self()},
       P2 ! {send, self()},
-      receive
-        PlayerCard ->
-          case PlayerCard of
-            {p1, []} ->
-              io:format("P1 has no cards.  P2 wins!~n");
-            {p2, []} ->
-              io:format("P2 has no cards.  P1 wins!~n");
-            _ ->
-              io:format("[dealer] Got ~p~n", [PlayerCard]),
-              dealer([PlayerCard|GameState], P1, P2)
-          end
+      get_card(GameState, P1, P2)
+  end.
+
+get_card(GameState, P1, P2) ->
+  receive
+    PlayerCard ->
+      case PlayerCard of
+        {p1, []} ->
+          io:format("P1 has no cards.  P2 wins!~n");
+        {p2, []} ->
+          io:format("P2 has no cards.  P1 wins!~n");
+        _ ->
+          io:format("[dealer] Got ~p~n", [PlayerCard]),
+          dealer([PlayerCard|GameState], P1, P2)
       end
   end.
 
