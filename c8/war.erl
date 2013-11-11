@@ -4,7 +4,6 @@
 -export([player/2, dealer/1]).
 
 %% Improvements:
-%% - refactor out duplicate code
 %% - make sure that in a war condition, it fairly decides who wins if both players send []
 
 %% Our entry point into the game.
@@ -87,23 +86,25 @@ analyze_play(_, P1Rank, P2Rank) when P1Rank /= undef, P2Rank /= undef ->
     P1Rank < P2Rank -> send_to_p2;
     P1Rank == P2Rank -> declare_war
   end;
+
 analyze_play([{Player, {Rank, _}}| Rest], P1Rank, P2Rank) when Player == p1, P1Rank == undef ->
-  case Rank of
-    "A" -> analyze_play(Rest, 14, P2Rank);
-    "K" -> analyze_play(Rest, 13, P2Rank);
-    "Q" -> analyze_play(Rest, 12, P2Rank);
-    "J" -> analyze_play(Rest, 11, P2Rank);
-    _ -> analyze_play(Rest, Rank, P2Rank)
-  end;
+  NumRank = numeric_rank(Rank),
+  analyze_play(Rest, NumRank, P2Rank);
+
 analyze_play([{Player, {Rank, _}}| Rest], P1Rank, P2Rank) when Player == p2, P2Rank == undef ->
-  case Rank of
-    "A" -> analyze_play(Rest, P1Rank, 14);
-    "K" -> analyze_play(Rest, P1Rank, 13);
-    "Q" -> analyze_play(Rest, P1Rank, 12);
-    "J" -> analyze_play(Rest, P1Rank, 11);
-    _ -> analyze_play(Rest, P1Rank, Rank)
-  end;
+  NumRank = numeric_rank(Rank),
+  analyze_play(Rest, P1Rank, NumRank);
+
 analyze_play([_|Rest], P1Rank, P2Rank) -> analyze_play(Rest, P1Rank, P2Rank).
+
+numeric_rank(Rank) ->
+  case Rank of
+    "A" -> 14;
+    "K" -> 13;
+    "Q" -> 12;
+    "J" -> 11;
+    _   -> Rank
+  end.
 
 %% player needs to maintain the state of his cards
 %% send a card to a pid
